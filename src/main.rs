@@ -1,6 +1,6 @@
 use clap::Parser;
-use std::io::{Write, Read};
 use std::fs::File;
+use std::io::{Read, Write};
 
 //version constant from Cargo.toml
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -9,11 +9,11 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[command(name = "insort", version = VERSION, author = "Backplane BV", about = "Utility which sorts the given file in-place and optionally inserts the given additions into the file")]
 struct Cli {
     /// The file to sort and optionally insert additions into
-    #[clap(name="filename", required = true)]
+    #[clap(name = "filename", required = true)]
     filename: String,
 
     /// Optional string(s) to insert into the file (strings already in the file, will not be inserted)
-    #[clap(name="additions", required = false)]
+    #[clap(name = "additions", required = false)]
     additions: Vec<String>,
 }
 fn main() {
@@ -41,7 +41,7 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     let mut lines: Vec<&str> = contents.split('\n').collect();
-    
+
     // (optionally) insert the arguments into the vector
     for addition in additions {
         // skip additions that are already in the file
@@ -85,7 +85,11 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     file.flush()?;
 
     // report the changes
-    eprintln!("{} sorted and {} additions inserted.", filename, additions.len());
+    eprintln!(
+        "{} sorted and {} additions inserted.",
+        filename,
+        additions.len()
+    );
 
     // return Ok
     Ok(())
@@ -108,13 +112,22 @@ mod tests {
         file.flush().unwrap();
 
         // call insert_and_sort
-        insert_and_sort(&tmp_filename, &vec!["line4".to_string(), "line4".to_string(), "line3".to_string(), "line9".to_string()]).unwrap();
+        insert_and_sort(
+            &tmp_filename,
+            &vec![
+                "line4".to_string(),
+                "line4".to_string(),
+                "line3".to_string(),
+                "line9".to_string(),
+            ],
+        )
+        .unwrap();
 
         // reopen the file
         let mut file = File::open(&tmp_filename).unwrap();
 
         // read the file back into a string
-        let mut contents = String::new();   
+        let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
 
         // check the contents
