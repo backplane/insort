@@ -3,7 +3,7 @@ use std::io::{Write, Read};
 use std::fs::File;
 
 //version constant from Cargo.toml
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Parser)]
 #[command(name = "insort", version = VERSION, author = "Backplane BV", about = "Utility which sorts the given file in-place and optionally inserts the given additions into the file")]
@@ -40,7 +40,7 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     // read the lines into a vector
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let mut lines: Vec<&str> = contents.split("\n").collect();
+    let mut lines: Vec<&str> = contents.split('\n').collect();
     
     // (optionally) insert the arguments into the vector
     for addition in additions {
@@ -57,7 +57,7 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     // determine if the vector has changed
     let mut changed = false;
     for (i, line) in lines.iter().enumerate() {
-        if line != &contents.split("\n").collect::<Vec<&str>>()[i] {
+        if line != &contents.split('\n').collect::<Vec<&str>>()[i] {
             changed = true;
             break;
         }
@@ -73,7 +73,7 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     let mut file = File::create(filename)?;
     for line in lines {
         // skip blank lines
-        if line == "" {
+        if line.is_empty() {
             continue;
         }
         file.write_all(line.as_bytes())?;
@@ -95,7 +95,6 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile;
 
     #[test]
     fn test_insert_and_sort() {

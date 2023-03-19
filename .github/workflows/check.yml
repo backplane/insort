@@ -12,33 +12,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout
-      - uses: actions/checkout@v3
+      - name: checkout
+        uses: actions/checkout@v3
 
       # https://github.com/actions-rs/toolchain
-      - uses: actions-rs/toolchain@v1
+      - name: set up toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
       
       # https://github.com/actions-rs/cargo
-      - uses: actions-rs/cargo@v1
+      - name: check
+        uses: actions-rs/cargo@v1
         with:
           command: check
 
       # https://github.com/actions-rs/cargo
-      - uses: actions-rs/cargo@v1
+      - name: clippy
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets --all-features -- -D warnings
 
       # https://github.com/actions-rs/cargo
-      - uses: actions-rs/cargo@v1
+      - name: fmt
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
       
       # run tests
-      - uses: actions-rs/cargo@v1
+      - name: test
+        uses: actions-rs/cargo@v1
         with:
           command: test
