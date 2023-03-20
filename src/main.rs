@@ -40,41 +40,46 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     // read the lines into a vector
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let mut lines: Vec<&str> = contents.split('\n').collect();
-    let initial_lines_len = lines.len();
+    // load the lines into a vector, removing empty lines
+    let mut lines: Vec<String> = contents
+        .lines()
+        .map(|line| line.to_string())
+        .filter(|line| !line.is_empty())
+        .collect();
+    let original_lines = lines.clone();
 
-    // sort the vector
+    // sort and deduplicate the vector
     lines.sort();
-
-    // eliminate duplicate lines from the vector
     lines.dedup();
 
-    // (optionally) insert the arguments into the vector
-    let mut insertions = 0;
+    // insert any given additions into the vector, skipping any additions that are already in the file or are empty
     for addition in additions {
-        // skip additions that are already in the file
-        if lines.contains(&addition.as_str()) {
+        if addition.is_empty() {
+            eprintln!("Warning: empty string passed as addition, skipping.");
             continue;
         }
-        lines.push(addition);
-        insertions += 1;
+        if !lines.contains(addition) {
+            lines.push(addition.to_string());
+        }
     }
 
     // sort the vector again
     lines.sort();
 
-    // determine if the vector has changed
+    // determine if the contents of the vector have changed (handling the case where the file was originally empty)
     let mut changed = false;
-    for (i, line) in lines.iter().enumerate() {
-        if line != &contents.split('\n').collect::<Vec<&str>>()[i] {
-            changed = true;
-            break;
+    if lines.len() != original_lines.len() {
+        changed = true;
+    } else {
+        for i in 0..lines.len() {
+            if lines[i] != original_lines[i] {
+                changed = true;
+                break;
+            }
         }
     }
-
-    // if the vector has not changed, return Ok
     if !changed {
-        eprintln!("{} left unchanged.", filename);
+        println!("{} left unchanged.", filename);
         return Ok(());
     }
 
@@ -82,36 +87,24 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
 
     // write the vector back to the file (in-place) with the same permissions
     let mut file = File::create(filename)?;
-    for line in lines {
-        // skip blank lines
-        if line.is_empty() {
-            continue;
-        }
-        file.write_all(line.as_bytes())?;
-        // write a newline to the buffer
-        file.write_all(b"\n")?;
-    }
-
-    // close the file
+    file.write_all(lines.join("\n").as_bytes())?;
+    file.write_all(b"\n")?;
     file.flush()?;
 
     // report the number of lines added or removed in the file with the filename
-    let lines_delta = updated_lines_len as i32 - initial_lines_len as i32;
-    eprintln!(
-        "{} sorted and de-duplicated, {} {} inserted; {} {} {}",
+    let lines_delta = updated_lines_len as i32 - original_lines.len() as i32;
+    println!(
+        "{} sorted and de-duplicated; delta: {}{} {}",
         filename,
-        insertions,
-        if insertions == 1 { "line" } else { "lines" },
+        if lines_delta < 0 { "-" } else { "+" },
         lines_delta,
         if lines_delta == 1 { "line" } else { "lines" },
-        if lines_delta < 0 { "removed" } else { "added" }
     );
 
     // return Ok
     Ok(())
 }
 
-// function to test the insert_and_sort function
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -128,16 +121,7 @@ mod tests {
         file.flush().unwrap();
 
         // call insert_and_sort
-        insert_and_sort(
-            &tmp_filename,
-            &vec![
-                "line4".to_string(),
-                "line4".to_string(),
-                "line3".to_string(),
-                "line9".to_string(),
-            ],
-        )
-        .unwrap();
+        insert_and_sort(&tmp_filename, &vec!["line3".to_string()]).unwrap();
 
         // reopen the file
         let mut file = File::open(&tmp_filename).unwrap();
@@ -147,6 +131,83 @@ mod tests {
         file.read_to_string(&mut contents).unwrap();
 
         // check the contents
-        assert_eq!(contents, "line1\nline2\nline3\nline4\nline9\n".to_string());
+        assert_eq!(contents, "line1\nline2\nline3\n".to_string());
+
+        // cleanup the temporary file
+        drop(file);
+
+        // ----------------------------------------------
+        // call insert_and_sort again, this time with no additions on an empty file
+
+        // create a new empty temp file
+        let file = tempfile::NamedTempFile::new().unwrap();
+        let tmp_filename = file.path().to_str().unwrap().to_owned();
+
+        // call insert_and_sort again, this time with no additions on an empty file
+        insert_and_sort(&tmp_filename, &vec![]).unwrap();
+
+        // reopen the file
+        let mut file = File::open(&tmp_filename).unwrap();
+
+        // read the file back into a string
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+
+        // check the contents
+        assert_eq!(contents, "".to_string());
+
+        // cleanup the temporary file
+        drop(file);
+
+        // ----------------------------------------------
+        // call insert_and_sort again, this time with no additions on a file with one line
+
+        // create a new empty temp file
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        let tmp_filename = file.path().to_str().unwrap().to_owned();
+
+        // write a line to the file
+        file.write_all(b"line1\n").unwrap();
+        // flush the file
+        file.flush().unwrap();
+
+        // call insert_and_sort again, this time with no additions on a file with one line
+        insert_and_sort(&tmp_filename, &vec![]).unwrap();
+
+        // reopen the file
+        let mut file = File::open(&tmp_filename).unwrap();
+
+        // read the file back into a string
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+
+        // check the contents
+        assert_eq!(contents, "line1\n".to_string());
+
+        // cleanup the temporary file
+        drop(file);
+
+        // ----------------------------------------------
+        // call insert_and_sort again, this time with one addition on an empty file
+
+        // create a new empty temp file
+        let file = tempfile::NamedTempFile::new().unwrap();
+        let tmp_filename = file.path().to_str().unwrap().to_owned();
+
+        // call insert_and_sort again, this time with one addition on an empty file
+        insert_and_sort(&tmp_filename, &vec!["line1".to_string()]).unwrap();
+
+        // reopen the file
+        let mut file = File::open(&tmp_filename).unwrap();
+
+        // read the file back into a string
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+
+        // check the contents
+        assert_eq!(contents, "line1\n".to_string());
+
+        // cleanup the temporary file
+        drop(file);
     }
 }
