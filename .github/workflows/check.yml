@@ -22,29 +22,9 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      
-      # https://github.com/actions-rs/cargo
-      - name: check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
 
-      # https://github.com/actions-rs/cargo
-      - name: clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features -- -D warnings
-
-      # https://github.com/actions-rs/cargo
-      - name: fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-      
-      # run tests
-      - name: test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+      # https://github.com/pre-commit/action
+      - name: run pre-commit
+        uses: pre-commit/action@v3.0.0
+        env:
+          SKIP: no-commit-to-branch
