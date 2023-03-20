@@ -41,17 +41,26 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     let mut lines: Vec<&str> = contents.split('\n').collect();
+    let initial_lines_len = lines.len();
+
+    // sort the vector
+    lines.sort();
+
+    // eliminate duplicate lines from the vector
+    lines.dedup();
 
     // (optionally) insert the arguments into the vector
+    let mut insertions = 0;
     for addition in additions {
         // skip additions that are already in the file
         if lines.contains(&addition.as_str()) {
             continue;
         }
         lines.push(addition);
+        insertions += 1;
     }
 
-    // sort the vector
+    // sort the vector again
     lines.sort();
 
     // determine if the vector has changed
@@ -69,6 +78,8 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
         return Ok(());
     }
 
+    let updated_lines_len = lines.len();
+
     // write the vector back to the file (in-place) with the same permissions
     let mut file = File::create(filename)?;
     for line in lines {
@@ -84,11 +95,16 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
     // close the file
     file.flush()?;
 
-    // report the changes
+    // report the number of lines added or removed in the file with the filename
+    let lines_delta = updated_lines_len as i32 - initial_lines_len as i32;
     eprintln!(
-        "{} sorted and {} additions inserted.",
+        "{} sorted and de-duplicated, {} {} inserted; {} {} {}",
         filename,
-        additions.len()
+        insertions,
+        if insertions == 1 { "line" } else { "lines" },
+        lines_delta,
+        if lines_delta == 1 { "line" } else { "lines" },
+        if lines_delta < 0 { "removed" } else { "added" }
     );
 
     // return Ok
