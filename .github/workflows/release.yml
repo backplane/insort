@@ -30,7 +30,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      
+
       # https://github.com/actions-rs/cargo
       - uses: actions-rs/cargo@v1
         with:
