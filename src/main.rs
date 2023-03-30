@@ -12,7 +12,7 @@ struct Cli {
     #[clap(name = "filename", required = true)]
     filename: String,
 
-    /// Optional string(s) to insert into the file (strings already in the file, will not be inserted)
+    /// Optional string(s) to insert into the file (strings already in the file will not be inserted)
     #[clap(name = "additions", required = false)]
     additions: Vec<String>,
 }
@@ -48,23 +48,18 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
         .collect();
     let original_lines = lines.clone();
 
-    // sort and deduplicate the vector
-    lines.sort();
-    lines.dedup();
-
-    // insert any given additions into the vector, skipping any additions that are already in the file or are empty
+    // insert any given additions into the vector
     for addition in additions {
         if addition.is_empty() {
             eprintln!("Warning: empty string passed as addition, skipping.");
             continue;
         }
-        if !lines.contains(addition) {
-            lines.push(addition.to_string());
-        }
+        lines.push(addition.to_string());
     }
 
-    // sort the vector again
+    // sort and deduplicate the vector
     lines.sort();
+    lines.dedup();
 
     // determine if the contents of the vector have changed (handling the case where the file was originally empty)
     let mut changed = false;
@@ -85,7 +80,7 @@ fn insert_and_sort(filename: &str, additions: &Vec<String>) -> Result<(), std::i
 
     let updated_lines_len = lines.len();
 
-    // write the vector back to the file (in-place) with the same permissions
+    // write the vector back to the file (in-place)
     let mut file = File::create(filename)?;
     file.write_all(lines.join("\n").as_bytes())?;
     file.write_all(b"\n")?;
