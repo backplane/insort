@@ -1,5 +1,6 @@
 # insort
 
+Utility which sorts the given file in-place and optionally inserts the given additions into the file
 
 ## Usage
 
@@ -8,15 +9,17 @@ The program prints the following usage text when invoked with the `-h` or `--hel
 ```
 Utility which sorts the given file in-place and optionally inserts the given additions into the file
 
-Usage: insort <filename> [additions]...
+Usage: insort [OPTIONS] <filename> [additions]...
 
 Arguments:
   <filename>      The file to sort and optionally insert additions into
-  [additions]...  Optional string(s) to insert into the file (strings already in the file, will not be inserted)
+  [additions]...  Optional string(s) to insert into the file (strings already in the file will not be inserted)
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+  -c, --create     Create the output file if it doesn't already exist
+  -n, --no-create  Don't create the output file if it doesn't already exist
+  -h, --help       Print help
+  -V, --version    Print version
 ```
 
 ### Example
