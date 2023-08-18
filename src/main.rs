@@ -57,7 +57,7 @@ fn read_file(filename: &str) -> std::io::Result<String> {
     Ok(contents)
 }
 
-// prompt_user: interactively asks the user if it's ok to create the given file
+/// prompt_user: interactively asks the user if it's ok to create the given file on the given reader and writer
 fn prompt_user<R: Read, W: Write>(
     reader: &mut R,
     writer: &mut W,
@@ -71,14 +71,14 @@ fn prompt_user<R: Read, W: Write>(
     Ok(input.trim() == "y")
 }
 
-// prompt_user: interactively asks the user if it's ok to create the given file
+/// prompt_user_std: interactively asks the user if it's ok to create the given file on STDOUT and STDIN
 fn prompt_user_std(filename: &str) -> Result<bool, std::io::Error> {
     let stdin = stdin();
     let stdout = stdout();
     prompt_user(&mut stdin.lock(), &mut stdout.lock(), filename)
 }
 
-// insert_and_sort: inserts the arguments into the file with the given name and sorts the file (in-place), returns an error if the file cannot be opened or written to
+/// insert_and_sort: inserts the arguments into the file with the given name and sorts the file (in-place), returns an error if the file cannot be opened or written to
 fn insert_and_sort(
     filename: &str,
     additions: &Vec<String>,
