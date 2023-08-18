@@ -45,18 +45,6 @@ fn main() {
     std::process::exit(0);
 }
 
-// read contents of the file with the given name into a String
-fn read_file(filename: &str) -> std::io::Result<String> {
-    // Open the file
-    let mut file = File::open(filename)?;
-
-    // Read the file contents into a String
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    Ok(contents)
-}
-
 /// prompt_user: interactively asks the user if it's ok to create the given file on the given reader and writer
 fn prompt_user<R: Read, W: Write>(
     reader: &mut R,
@@ -84,7 +72,7 @@ fn insert_and_sort(
     additions: &Vec<String>,
     allow_create: Option<bool>,
 ) -> Result<(), std::io::Error> {
-    let contents = match read_file(filename) {
+    let contents = match std::fs::read_to_string(filename) {
         Ok(contents) => contents,
         Err(err) => match err.kind() {
             std::io::ErrorKind::NotFound => match allow_create {
@@ -204,24 +192,6 @@ mod tests {
             String::from_utf8(output).unwrap(),
             "test.txt does not exist. create it? (y/n) >"
         );
-    }
-
-    #[test]
-    fn test_read_file() {
-        let data = "Hello, world!\n";
-
-        // create a temporary file
-        let mut file = tempfile::NamedTempFile::new().unwrap();
-        let tmp_filename = file.path().to_str().unwrap().to_owned();
-
-        // write some lines to the file
-        file.write_all(data.as_bytes()).unwrap();
-        // flush the file
-        file.flush().unwrap();
-
-        // Test that read_file returns the correct contents
-        let contents = read_file(&tmp_filename).unwrap();
-        assert_eq!(contents, data);
     }
 
     #[test]
