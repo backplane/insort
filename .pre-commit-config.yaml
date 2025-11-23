@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -18,14 +18,14 @@ repos:
           - --branch
           - main
   - repo: https://github.com/backplane/pre-commit-rust-hooks
-    rev: v1.1.0
+    rev: v1.2.1
     hooks:
       - id: fmt
       - id: check
       - id: clippy
       - id: test
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.6.23
+    rev: v1.7.9
     hooks:
       - id: actionlint-docker
         name: check github workflows with actionlint

@@ -5,7 +5,7 @@ name: Release
 on:
   push:
     tags:
-      - '*.*.*'
+      - "*.*.*"
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       # https://github.com/actions/checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       # https://github.com/actions-rs/toolchain
       - uses: actions-rs/toolchain@v1
@@ -38,7 +38,7 @@ jobs:
           args: --release --target ${{ matrix.target }}
 
       # https://github.com/actions/upload-artifact
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ github.event.repository.name }}
@@ -48,15 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # https://github.com/actions/checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       # https://github.com/actions/download-artifact
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v6
         with:
           path: target
 
       # https://github.com/softprops/action-gh-release
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v2
         with:
           files: |
             target/aarch64-apple-darwin/release/${{ github.event.repository.name }}
